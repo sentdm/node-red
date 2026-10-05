@@ -1,0 +1,17 @@
+# Sent Node-RED integration architecture
+
+The package has one runtime/editor registration pair, one password-credential config node, eight action constructors and two webhook constructors. Action behavior is in `nodes/lib/actions.js`; HTTP authentication, pacing, bounded retries, response/error contracts and redaction are centralized in `nodes/lib/client.js`. The private development transport accepts only a literal loopback URL and the fake mock credential under explicit opt-in.
+
+Actions evaluate Node-RED typed properties once per operation, construct the documented request shape, and preserve the input message. No request-level state is stored globally on the action node. Send keys bind node/message/body/profile identity so internal retries cannot generate a fresh operation accidentally. The Account config shares authentication discovery and pacing among its users.
+
+The editor sends only account-node IDs and fixed lookup parameters to permission-protected admin routes. Templates, variables, profiles and event types come from the server. DOM labels use text setters; untrusted API names are not inserted as HTML. Manual typed IDs remain usable without lookup availability.
+
+A module-level receiver map dispatches one stable RED.httpNode route to live trigger instances. Removing nodes removes map entries without touching Express private router structures. Each subscription's signing secret is held only in that map's receiver closure. Registration uses the current webhook API and canonical parent/filter representation. Cleanup searches by deterministic ownership, filters exact equality, gathers all pages before deletion, and bounds the scan. Registration retries use one fresh activation idempotency key. Missing read-back secrets are handled by delete/recreate on restart.
+
+Node-RED 5.0.7's editor/admin app has global JSON parsers and is mounted before HTTP nodes. The supported `httpAdminMiddleware` setting runs before those parsers. `nodes/lib/raw-body.js` is exported for that early hook, captures only the Sent route family, and supplies a non-enumerable Buffer. The receiver also has a route-local raw parser for non-overlapping admin roots. It fails closed for previously consumed streams. Node-RED core HTTP In's private rawDataRoutes set is not used. Both early-parser behavior and real packed CLI runtime behavior are tested.
+
+Webhook verification precedes parsing and emission. Dedupe is payload based, bounded and stored in node context. After basic validation and context update, the receiver ends the HTTP response and schedules downstream dispatch. This consciously trades durable handoff for fast acknowledgment, as required. Downstream business logic must be idempotent; persistence and crash limits are documented.
+
+The mock is an independent HTTP server with its own signing code and contract-shaped fixtures. Helper tests instantiate real Node-RED nodes. Final QA uses npm pack, a new Node-RED user directory and its own installed Node-RED 5.0.7 CLI process; it observes core Debug output and actual mock HTTP traffic. It does not replace package node implementations. No publishing or production send occurs.
+
+`npm run qa:contract` downloads the public deployed OpenAPI from https://api.sent.dm/swagger/v3/swagger.json, then checks the operations and request fields used by this integration. The exact downloaded body and its digest are kept in the ignored `qa/` directory. This is a structural contract check, not complete JSON Schema validation.

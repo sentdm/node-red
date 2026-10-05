@@ -1,0 +1,862 @@
+[
+  {
+    "id": "sent-actions",
+    "type": "tab",
+    "label": "Sent - Actions",
+    "info": "Eight focused Sent actions. Click each Inject button; inspect complete results in Debug. The local mock uses fictional NANP 202-555-01xx numbers."
+  },
+  {
+    "id": "sent-webhooks",
+    "type": "tab",
+    "label": "Sent - Webhooks",
+    "info": "Signed webhook events. Both subscriptions are managed on deploy. In mock mode click Generate signed samples."
+  },
+  {
+    "id": "sent-e2e",
+    "type": "tab",
+    "label": "Sent - End to End",
+    "info": "A mock message accepted for processing, followed by independent status and activity checks."
+  },
+  {
+    "id": "sent-account-demo",
+    "type": "sent-account",
+    "name": "Sent · local mock",
+    "useEnv": false
+  },
+  {
+    "id": "action-intro",
+    "type": "comment",
+    "z": "sent-actions",
+    "name": "MOCK · click an Inject button",
+    "info": "Every example preserves the input msg and returns Sent data in payload plus diagnostic metadata in sent. No production messaging happens in mock mode.",
+    "x": 390,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "inject-get-account",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "Account & channels",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 100,
+    "wires": [
+      [
+        "demo-get-account"
+      ]
+    ]
+  },
+  {
+    "id": "demo-get-account",
+    "type": "sent-get-account",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "x": 430,
+    "y": 100,
+    "wires": [
+      [
+        "debug-get-account"
+      ]
+    ]
+  },
+  {
+    "id": "debug-get-account",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Account & channels · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "inject-send-message",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "Send a welcome",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{\"to\":[\"+12025550100\"],\"text\":\"Welcome to Sent on Node-RED.\"}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 175,
+    "wires": [
+      [
+        "demo-send-message"
+      ]
+    ]
+  },
+  {
+    "id": "demo-send-message",
+    "type": "sent-send-message",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "mode": "text",
+    "to": "payload.to",
+    "toType": "msg",
+    "text": "payload.text",
+    "textType": "msg",
+    "channel": "sent",
+    "sandbox": true,
+    "sandboxType": "bool",
+    "x": 430,
+    "y": 175,
+    "wires": [
+      [
+        "debug-send-message"
+      ]
+    ]
+  },
+  {
+    "id": "debug-send-message",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Send a welcome · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 175,
+    "wires": []
+  },
+  {
+    "id": "inject-get-message-status",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "Message status",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{\"message_id\":\"50000000-0000-4000-8000-000000000001\"}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 250,
+    "wires": [
+      [
+        "demo-get-message-status"
+      ]
+    ]
+  },
+  {
+    "id": "demo-get-message-status",
+    "type": "sent-get-message-status",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "messageId": "payload.message_id",
+    "messageIdType": "msg",
+    "x": 430,
+    "y": 250,
+    "wires": [
+      [
+        "debug-get-message-status"
+      ]
+    ]
+  },
+  {
+    "id": "debug-get-message-status",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Message status · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 250,
+    "wires": []
+  },
+  {
+    "id": "inject-get-message-activities",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "Message activities",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{\"message_id\":\"50000000-0000-4000-8000-000000000001\"}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 325,
+    "wires": [
+      [
+        "demo-get-message-activities"
+      ]
+    ]
+  },
+  {
+    "id": "demo-get-message-activities",
+    "type": "sent-get-message-activities",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "messageId": "payload.message_id",
+    "messageIdType": "msg",
+    "x": 430,
+    "y": 325,
+    "wires": [
+      [
+        "debug-get-message-activities"
+      ]
+    ]
+  },
+  {
+    "id": "debug-get-message-activities",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Message activities · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 325,
+    "wires": []
+  },
+  {
+    "id": "inject-list-contacts",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "First contact page",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 400,
+    "wires": [
+      [
+        "demo-list-contacts"
+      ]
+    ]
+  },
+  {
+    "id": "demo-list-contacts",
+    "type": "sent-list-contacts",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "page": 1,
+    "pageType": "num",
+    "pageSize": 2,
+    "pageSizeType": "num",
+    "x": 430,
+    "y": 400,
+    "wires": [
+      [
+        "debug-list-contacts"
+      ]
+    ]
+  },
+  {
+    "id": "debug-list-contacts",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "First contact page · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 400,
+    "wires": []
+  },
+  {
+    "id": "inject-get-contact",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "Contact details",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{\"id\":\"40000000-0000-4000-8000-000000000001\"}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 475,
+    "wires": [
+      [
+        "demo-get-contact"
+      ]
+    ]
+  },
+  {
+    "id": "demo-get-contact",
+    "type": "sent-get-contact",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "contactId": "payload.id",
+    "contactIdType": "msg",
+    "x": 430,
+    "y": 475,
+    "wires": [
+      [
+        "debug-get-contact"
+      ]
+    ]
+  },
+  {
+    "id": "debug-get-contact",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Contact details · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 475,
+    "wires": []
+  },
+  {
+    "id": "inject-get-phone-number-details",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "Phone details",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{\"phone\":\"+12025550100\"}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 550,
+    "wires": [
+      [
+        "demo-get-phone-number-details"
+      ]
+    ]
+  },
+  {
+    "id": "demo-get-phone-number-details",
+    "type": "sent-get-phone-number-details",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "phone": "payload.phone",
+    "phoneType": "msg",
+    "x": 430,
+    "y": 550,
+    "wires": [
+      [
+        "debug-get-phone-number-details"
+      ]
+    ]
+  },
+  {
+    "id": "debug-get-phone-number-details",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Phone details · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 550,
+    "wires": []
+  },
+  {
+    "id": "inject-custom-api-call",
+    "type": "inject",
+    "z": "sent-actions",
+    "name": "Custom GET /v3/me",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 160,
+    "y": 625,
+    "wires": [
+      [
+        "demo-custom-api-call"
+      ]
+    ]
+  },
+  {
+    "id": "demo-custom-api-call",
+    "type": "sent-custom-api-call",
+    "z": "sent-actions",
+    "account": "sent-account-demo",
+    "name": "",
+    "method": "GET",
+    "path": "/v3/me",
+    "query": "{}",
+    "queryType": "json",
+    "x": 430,
+    "y": 625,
+    "wires": [
+      [
+        "debug-custom-api-call"
+      ]
+    ]
+  },
+  {
+    "id": "debug-custom-api-call",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Custom GET /v3/me · result",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 625,
+    "wires": []
+  },
+  {
+    "id": "actions-errors",
+    "type": "comment",
+    "z": "sent-actions",
+    "name": "Catch structured errors",
+    "info": "Expand msg.sent.error in Debug for HTTP status, Sent error code, details, docs and request ID.",
+    "x": 200,
+    "y": 735,
+    "wires": []
+  },
+  {
+    "id": "catch-actions",
+    "type": "catch",
+    "z": "sent-actions",
+    "name": "Sent action errors",
+    "scope": null,
+    "uncaught": false,
+    "x": 190,
+    "y": 785,
+    "wires": [
+      [
+        "debug-errors"
+      ]
+    ]
+  },
+  {
+    "id": "debug-errors",
+    "type": "debug",
+    "z": "sent-actions",
+    "name": "Errors · inspect sent.error",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 500,
+    "y": 785,
+    "wires": []
+  },
+  {
+    "id": "webhook-intro",
+    "type": "comment",
+    "z": "sent-webhooks",
+    "name": "Signed events · deployed automatically",
+    "info": "Blue status confirms subscription registration. Every incoming event is verified using exact raw bytes. Duplicates are acknowledged without another flow message.",
+    "x": 395,
+    "y": 55,
+    "wires": []
+  },
+  {
+    "id": "demo-new-event",
+    "type": "sent-new-event",
+    "z": "sent-webhooks",
+    "account": "sent-account-demo",
+    "name": "",
+    "events": "message.delivered,message.failed,templates",
+    "x": 220,
+    "y": 155,
+    "wires": [
+      [
+        "debug-new-event"
+      ]
+    ]
+  },
+  {
+    "id": "debug-new-event",
+    "type": "debug",
+    "z": "sent-webhooks",
+    "name": "Delivery & template events",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 600,
+    "y": 155,
+    "wires": []
+  },
+  {
+    "id": "demo-new-message-received",
+    "type": "sent-new-message-received",
+    "z": "sent-webhooks",
+    "account": "sent-account-demo",
+    "name": "",
+    "x": 220,
+    "y": 285,
+    "wires": [
+      [
+        "debug-new-message-received"
+      ]
+    ]
+  },
+  {
+    "id": "debug-new-message-received",
+    "type": "debug",
+    "z": "sent-webhooks",
+    "name": "Inbound messages only",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 600,
+    "y": 285,
+    "wires": []
+  },
+  {
+    "id": "mock-generator-help",
+    "type": "comment",
+    "z": "sent-webhooks",
+    "name": "Try both trigger paths",
+    "info": "This core HTTP Request calls only the local mock. The mock sends separately signed HTTP requests back into the registered Sent receivers.",
+    "x": 385,
+    "y": 395,
+    "wires": []
+  },
+  {
+    "id": "inject-webhooks",
+    "type": "inject",
+    "z": "sent-webhooks",
+    "name": "Generate signed samples",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 180,
+    "y": 470,
+    "wires": [
+      [
+        "mock-samples"
+      ]
+    ]
+  },
+  {
+    "id": "mock-samples",
+    "type": "http request",
+    "z": "sent-webhooks",
+    "name": "Local mock · signed events",
+    "method": "POST",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "http://127.0.0.1:1881/_mock/emit",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 450,
+    "y": 470,
+    "wires": [
+      [
+        "debug-mock-samples"
+      ]
+    ]
+  },
+  {
+    "id": "debug-mock-samples",
+    "type": "debug",
+    "z": "sent-webhooks",
+    "name": "Mock delivery receipts",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 735,
+    "y": 470,
+    "wires": []
+  },
+  {
+    "id": "e2e-intro",
+    "type": "comment",
+    "z": "sent-e2e",
+    "name": "From acceptance to lifecycle details",
+    "info": "The mock returns real fixture IDs for its own in-memory messages. A Change node extracts the first recipient message_id, then both status and activities are read.",
+    "x": 435,
+    "y": 60,
+    "wires": []
+  },
+  {
+    "id": "inject-e2e",
+    "type": "inject",
+    "z": "sent-e2e",
+    "name": "Start message lifecycle",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "payload": "{\"to\":[\"+12025550100\"],\"text\":\"Your order is ready.\"}",
+    "payloadType": "json",
+    "topic": "",
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "x": 180,
+    "y": 160,
+    "wires": [
+      [
+        "e2e-send"
+      ]
+    ]
+  },
+  {
+    "id": "e2e-send",
+    "type": "sent-send-message",
+    "z": "sent-e2e",
+    "account": "sent-account-demo",
+    "name": "",
+    "mode": "text",
+    "to": "payload.to",
+    "toType": "msg",
+    "text": "payload.text",
+    "textType": "msg",
+    "sandbox": true,
+    "sandboxType": "bool",
+    "x": 430,
+    "y": 160,
+    "wires": [
+      [
+        "debug-e2e-accepted",
+        "extract-id"
+      ]
+    ]
+  },
+  {
+    "id": "debug-e2e-accepted",
+    "type": "debug",
+    "z": "sent-e2e",
+    "name": "Accepted · HTTP 202",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 730,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "extract-id",
+    "type": "change",
+    "z": "sent-e2e",
+    "name": "Keep first message ID",
+    "rules": [
+      {
+        "t": "set",
+        "p": "message_id",
+        "pt": "msg",
+        "to": "payload.recipients[0].message_id",
+        "tot": "msg"
+      }
+    ],
+    "x": 440,
+    "y": 285,
+    "wires": [
+      [
+        "e2e-status",
+        "e2e-activities"
+      ]
+    ]
+  },
+  {
+    "id": "e2e-status",
+    "type": "sent-get-message-status",
+    "z": "sent-e2e",
+    "account": "sent-account-demo",
+    "name": "",
+    "messageId": "message_id",
+    "messageIdType": "msg",
+    "x": 430,
+    "y": 390,
+    "wires": [
+      [
+        "debug-e2e-status"
+      ]
+    ]
+  },
+  {
+    "id": "debug-e2e-status",
+    "type": "debug",
+    "z": "sent-e2e",
+    "name": "Current status",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 745,
+    "y": 390,
+    "wires": []
+  },
+  {
+    "id": "e2e-activities",
+    "type": "sent-get-message-activities",
+    "z": "sent-e2e",
+    "account": "sent-account-demo",
+    "name": "",
+    "messageId": "message_id",
+    "messageIdType": "msg",
+    "x": 430,
+    "y": 480,
+    "wires": [
+      [
+        "debug-e2e-activities"
+      ]
+    ]
+  },
+  {
+    "id": "debug-e2e-activities",
+    "type": "debug",
+    "z": "sent-e2e",
+    "name": "Full activity lifecycle",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "x": 745,
+    "y": 480,
+    "wires": []
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "name": "@sentdm/node-red-sent",
+  "version": "0.1.0",
+  "description": "Native Sent messaging actions and verified webhook triggers for Node-RED 5",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "keywords": [
+    "node-red",
+    "sent",
+    "sms",
+    "whatsapp",
+    "rcs"
+  ],
+  "homepage": "https://github.com/sentdm/node-red#readme",
+  "files": [
+    "nodes/sent.js",
+    "nodes/sent.html",
+    "nodes/lib/client.js",
+    "nodes/lib/actions.js",
+    "nodes/lib/webhooks.js",
+    "nodes/lib/raw-body.js",
+    "nodes/icons/sent.svg",
+    "examples/sent-demo.json",
+    "examples/sent-live-sandbox.json",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "node-red": {
+    "version": ">=5.0.7 <6",
+    "nodes": {
+      "sent": "nodes/sent.js"
+    }
+  },
+  "scripts": {
+    "test": "mocha --timeout 15000 test/**/*.test.js",
+    "lint": "eslint nodes dev test eslint.config.js",
+    "demo:mock": "node dev/demo.js",
+    "demo:live": "node dev/demo.js --live",
+    "qa:fresh": "node dev/fresh.js",
+    "qa:contract": "node dev/audit-openapi.js",
+    "build": "node dev/build-editor.js && node dev/build-flows.js",
+    "check:generated": "node dev/check-generated.js"
+  },
+  "dependencies": {
+    "raw-body": "4.0.0"
+  },
+  "devDependencies": {
+    "node-red": "5.0.7",
+    "node-red-node-test-helper": "0.3.6",
+    "mocha": "12.0.1",
+    "eslint": "10.10.0",
+    "@eslint/js": "10.0.1",
+    "globals": "17.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sentdm/node-red.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sentdm/node-red/issues"
+  },
+  "overrides": {
+    "axios": "1.20.0",
+    "moment": "2.31.0",
+    "multer": "2.4.0",
+    "qs": "6.16.0"
+  }
+}
