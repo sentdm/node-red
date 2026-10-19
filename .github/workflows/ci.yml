@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # The release procedure in publish.yml asks for a CI-green commit before tagging. Manual
+  # dispatch re-runs CI on an already-pushed `main` without needing an empty commit.
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22 is the floor declared in package.json `engines`; 24 is what the README recommends.
+        node-version: [22, 24]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Generated editor and examples match their sources
+        run: npm run check:generated
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      # Only the shipped dependency tree (`raw-body`) is audited. Advisories in devDependencies
+      # are handled through the `overrides` in package.json, as CONTRIBUTING.md describes.
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Inspect package contents
+        run: npm pack --dry-run
+
+      - name: Check tracked files for local or generated artifacts
+        shell: bash
+        run: |
+          # .gitignore is an allowlist, so anything outside it can only be tracked through
+          # `git add -f`. This catches exactly that case for files that must never ship.
+          if git ls-files | grep -E '(^|/)\.env($|\.)|(^|/)node_modules/|(^|/)qa/|(^|/)\.demo|(^|/)\.fresh|(^|/)\.test-runtime|\.tgz$|(^|/)\.?npmrc$|\.(pem|key|p12|pfx)$' ; then
+            echo 'Tracked local or generated artifact detected.' >&2
+            exit 1
+          fi
+          # The shipped runtime legitimately reads process.env (SENT_API_KEY, SENT_WEBHOOK_BASE_URL,
+          # SENT_INSTANCE_ID, SENT_NODE_RED_DEVELOPMENT) and sent.html is an editor file made of
+          # <script> blocks, so those two patterns from the n8n repository's check are not applied.
+          if git grep -nE 'NODE_TLS_REJECT_UNAUTHORIZED|rejectUnauthorized[[:space:]]*:[[:space:]]*false|child_process|eval\(|new Function\(' -- nodes package.json ; then
+            echo 'Potentially unsafe runtime construct detected in shipped sources.' >&2
+            exit 1
+          fi

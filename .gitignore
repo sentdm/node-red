@@ -1,6 +1,12 @@
 # Public source allowlist. New public files require an intentional entry here.
 /*
 !/.gitignore
+!/.github/
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/ci.yml
+!/.github/workflows/publish.yml
 !/package.json
 !/package-lock.json
 !/eslint.config.js
