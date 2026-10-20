@@ -4,33 +4,18 @@ Eight messaging actions and two verified webhook triggers for Node-RED 5, sharin
 
 This package targets Node-RED 5 and the deployed Sent v3 API. Contract verification uses the [official upstream OpenAPI](https://api.sent.dm/swagger/v3/swagger.json), linked by Sent's [OpenAPI documentation](https://docs.sent.dm/reference/api/openapi-spec). The automated suite covers local workflows, signed webhook verification and negative security cases. Account policy gates can still block an accepted message; HTTP acceptance does not prove carrier delivery. Reproduce the checks described in [CONTRIBUTING.md](https://github.com/sentdm/node-red/blob/main/CONTRIBUTING.md).
 
-## Start the local demonstration
-
-Use Node.js 24 (minimum 22.9) and npm:
-
-```sh
-npm ci
-npm test
-npm run lint
-npm run demo:mock
-```
-
-Open [localhost:1880](http://localhost:1880). The command packs the actual package, installs that tarball and Node-RED 5.0.7 in project-local `.demo/`, starts the mock on loopback port 1881, deploys examples, exercises all ten user-facing nodes, and keeps Node-RED running. It does not use `~/.node-red`. Both ports must be available. Stop with Ctrl-C to delete mock subscriptions and stop both servers. Re-running resets the supplied demonstration flows; export your edits first. `.demo/` retains Node-RED context/settings but is excluded from npm and git.
-
-The three tabs are **Sent - Actions**, **Sent - Webhooks**, and **Sent - End to End**. Click an Inject button to run an action; open Debug to inspect its complete message. On Webhooks, **Generate signed samples** sends fresh, correctly signed local mock requests through both real trigger receivers. The end-to-end example extracts the accepted recipient ID before reading status and activities. Fictional +1 202-555-01xx numbers are used throughout. Packaged examples keep sends in sandbox and console logging disabled; the mock-only runner enables persistent fixture sends and local diagnostic logging using its fixed fake credential. The packaged mock account does not automatically use a live environment credential.
-
-`npm run qa:fresh` creates a new `.fresh-*` directory, installs the tarball with a fresh Node-RED runtime, executes and verifies examples, writes evidence under `qa/`, and stops that runtime. Stop any existing demo before running this command.
-
 ## Install the package into your Node-RED user directory
 
-Until a release is published, install a locally generated tarball:
+Requires Node.js 22.9 or later and Node-RED 5.0.7 or later within the 5.x series.
+
+Install the published package from npm in your Node-RED user directory (usually `~/.node-red`):
 
 ```sh
-# In this package's source directory:
-npm pack
-# In your chosen Node-RED user directory:
-npm install /absolute/path/to/sentdm-node-red-sent-0.1.0.tgz
+cd ~/.node-red
+npm install @sentdm/node-red-sent
 ```
+
+If you start Node-RED with a custom `--userDir`, run the install command in that directory instead.
 
 Restart Node-RED. The **Sent** palette contains ten nodes. Examples appear in **Import → Examples → @sentdm/node-red-sent**. Only standard Node-RED core nodes are needed. Do not run the mock example against a live account; import `sent-live-sandbox` for a live setup.
 
@@ -131,7 +116,7 @@ The live demo does not automatically inject actions. All provided sends have san
 
 ## Troubleshooting and security
 
-- **Unknown node type:** ensure the tarball was installed in the user directory passed to Node-RED, and restart. Check startup logs.
+- **Unknown node type:** ensure `@sentdm/node-red-sent` was installed in the user directory used by Node-RED, and restart. Check startup logs.
 - **Options unavailable:** save and deploy the account, check authentication, confirm organization scope, then use manual IDs if the service is unavailable.
 - **Webhook HTTP 500/raw body unavailable:** install the early middleware above before any body parser; restart, then redeploy.
 - **Webhook 401:** check clock synchronization, raw-byte preservation, current ownership ID and newly issued secret. Old secrets intentionally fail after recreation.
@@ -146,3 +131,33 @@ Configure Node-RED `adminAuth` in shared deployments. Lookups require the `sent.
 Production code is in `nodes/`; editor generation and the mock/demo harness are in `dev/`; tests use the official `node-red-node-test-helper`. Run `node dev/build-editor.js` after changing editor source and `node dev/build-flows.js` after changing examples. Run tests/lint, then `npm run qa:fresh`. Inspect `qa/pack-manifest.json` before any release. Package allowlisting excludes mock, tests, research, logs, local user directories and credentials.
 
 Node.js 24 and Node-RED 5.0.7 are the tested development versions. Package engines require Node.js >=22.9 and Node-RED >=5.0.7 <6; this is not a claim that every version combination has been tested. Source and issue tracking are maintained at [sentdm/node-red](https://github.com/sentdm/node-red). This package includes the MIT license and Sent icon. Publishing to npm and submission to the Node-RED Flow Library are separate release actions; the demo and test scripts do not publish.
+
+### Start the local demonstration
+
+From a clone of the [source repository](https://github.com/sentdm/node-red), use Node.js 24 (minimum 22.9) and npm:
+
+```sh
+npm ci
+npm test
+npm run lint
+npm run demo:mock
+```
+
+Open [localhost:1880](http://localhost:1880). The command packs the actual package, installs that tarball and Node-RED 5.0.7 in project-local `.demo/`, starts the mock on loopback port 1881, deploys examples, exercises all ten user-facing nodes, and keeps Node-RED running. It does not use `~/.node-red`. Both ports must be available. Stop with Ctrl-C to delete mock subscriptions and stop both servers. Re-running resets the supplied demonstration flows; export your edits first. `.demo/` retains Node-RED context/settings but is excluded from npm and git.
+
+The three tabs are **Sent - Actions**, **Sent - Webhooks**, and **Sent - End to End**. Click an Inject button to run an action; open Debug to inspect its complete message. On Webhooks, **Generate signed samples** sends fresh, correctly signed local mock requests through both real trigger receivers. The end-to-end example extracts the accepted recipient ID before reading status and activities. Fictional +1 202-555-01xx numbers are used throughout. Packaged examples keep sends in sandbox and console logging disabled; the mock-only runner enables persistent fixture sends and local diagnostic logging using its fixed fake credential. The packaged mock account does not automatically use a live environment credential.
+
+`npm run qa:fresh` creates a new `.fresh-*` directory, installs the tarball with a fresh Node-RED runtime, executes and verifies examples, writes evidence under `qa/`, and stops that runtime. Stop any existing demo before running this command.
+
+### Test a local tarball
+
+To test local source changes, build and install a tarball:
+
+```sh
+# In this package's source directory:
+npm pack
+# In your chosen Node-RED user directory:
+npm install /absolute/path/to/TARBALL_FILENAME.tgz
+```
+
+Replace `/absolute/path/to/TARBALL_FILENAME.tgz` with the full path to the tarball printed by `npm pack`. Restart Node-RED after installation. The local demo and test tools require the source repository and are not included in the published package.
