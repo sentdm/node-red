@@ -1,0 +1,121 @@
+name: Publish
+
+# npm can attach a Trusted Publisher only to a package that already exists, so the first
+# release authenticates with a short-lived NPM_TOKEN repository secret: a granular access token
+# limited to the @sentdm scope, created by an npm org owner, with the shortest practical expiry.
+# Once that version is live, configure the Trusted Publisher on npm (provider GitHub Actions,
+# owner sentdm, repository node-red, workflow publish.yml, environment blank), delete the
+# repository secret and revoke the token. From then on the token is absent and npm 11
+# authenticates through this job's OIDC token instead. Both paths publish from GitHub Actions
+# with public access and npm provenance. Never bootstrap the package with a local publish.
+#
+# Release procedure (same as sentdm/n8n-nodes-sent):
+#   1. Bump: `npm version <version> --no-git-tag-version`, commit, push to main.
+#   2. Wait for the CI workflow to pass on that exact commit.
+#   3. `git tag -a <version> -m 'Release <version>'` then `git push origin <version>`.
+# The tag is the bare version (0.1.0, not v0.1.0) and must equal the version in package.json.
+
+on:
+  push:
+    tags: ['*.*.*']
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'sentdm/node-red'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      # Third-party actions are pinned to commit SHAs: this job holds `id-token: write` and
+      # publishes to npm, so a retagged major version would be a direct supply-chain path.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Deliberately no `registry-url`. It makes setup-node write an .npmrc containing
+      # `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}` with a literal placeholder when no
+      # real token is supplied. npm then sees a credential, never attempts OIDC, and the registry
+      # rejects the placeholder as `404 Not Found - PUT`. That is what broke the first Trusted
+      # Publishing release of @sentdm/n8n-nodes-sent 0.1.1. npm defaults to registry.npmjs.org
+      # anyway, and the bootstrap-token path below sets its own authToken.
+      - name: Set up Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      # Node 22 bundles npm 10, which cannot do Trusted Publishing (it needs npm >= 11.5.1).
+      - name: Use an npm version that supports Trusted Publishing
+        run: npm install --global npm@11.21.1
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Require an exact package-version tag
+        shell: bash
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          if [ "$package_version" != "$GITHUB_REF_NAME" ]; then
+            echo "package.json version $package_version does not match tag $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+          if npm view "@sentdm/node-red-sent@$package_version" version >/dev/null 2>&1; then
+            echo "@sentdm/node-red-sent@$package_version already exists; refusing to republish" >&2
+            exit 1
+          fi
+
+      # There is no build step: the checkout is the artifact. The same gates as the CI workflow
+      # therefore run here against the exact commit being published.
+      - name: Generated editor and examples match their sources
+        run: npm run check:generated
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Inspect package contents
+        run: npm pack --dry-run
+
+      - name: Publish with provenance
+        env:
+          # Bootstrap fallback for the first release only. Leave unset for OIDC releases.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
+          NPM_CONFIG_ACCESS: public
+        shell: bash
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+          fi
+          npm publish
+
+      # npm's packument lags the publish itself. On the first publish of @sentdm/n8n-nodes-sent
+      # the version document was correct immediately while the packument 404'd for about 3.5
+      # minutes, so a plain `npm view` right after publishing can fail although the version is
+      # live. Wait for the packument to list this version, then print its provenance attestation
+      # so the run log is the evidence for the release checklist.
+      - name: Wait for the published version to appear in the npm packument
+        shell: bash
+        run: |
+          packument='https://registry.npmjs.org/@sentdm%2Fnode-red-sent'
+          for attempt in $(seq 1 30); do
+            if curl -sS -H 'Cache-Control: no-cache' "$packument" \
+              | node -e 'let s="";process.stdin.on("data",d=>{s+=d}).on("end",()=>{try{process.exit(JSON.parse(s).versions?.[process.argv[1]]?0:1)}catch{process.exit(1)}})' "$GITHUB_REF_NAME"; then
+              echo "packument lists $GITHUB_REF_NAME after $attempt attempt(s)"
+              npm view "@sentdm/node-red-sent@$GITHUB_REF_NAME" version repository.url dist.attestations --json
+              exit 0
+            fi
+            echo "packument does not list $GITHUB_REF_NAME yet (attempt $attempt); waiting"
+            sleep 20
+          done
+          echo "npm packument never listed $GITHUB_REF_NAME. The publish may still have succeeded: check the publish step log before re-running this job, which refuses to republish." >&2
+          exit 1
